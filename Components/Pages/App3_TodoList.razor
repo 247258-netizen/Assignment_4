@@ -1,0 +1,67 @@
+@page "/todo"
+@rendermode InteractiveServer
+
+<PageTitle>App 3 - To-Do List</PageTitle>
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-warning text-dark">
+            <h3>Application 3: To-Do List with Two-Way Binding</h3>
+        </div>
+        <div class="card-body">
+            <div class="input-group mb-3">
+                <input class="form-control form-control-lg"
+                       @bind="newTask" @bind:event="oninput"
+                       @onkeypress="HandleKeyPress"
+                       placeholder="Enter a new task..." />
+                <button class="btn btn-warning" @onclick="AddTask">Add Task</button>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="badge bg-secondary fs-6">Total: @tasks.Count</span>
+                <span class="badge bg-success fs-6">Done: @tasks.Count(t => t.IsDone)</span>
+                <button class="btn btn-danger btn-sm" @onclick="ClearAll" disabled="@(tasks.Count == 0)">Clear All</button>
+            </div>
+
+            @if (tasks.Count == 0)
+            {
+                <div class="text-center text-muted py-4"><p>No tasks yet. Add one above!</p></div>
+            }
+            else
+            {
+                <ul class="list-group">
+                    @foreach (var task in tasks)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center @(task.IsDone ? "list-group-item-success" : "")">
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="checkbox" class="form-check-input" @bind="task.IsDone" />
+                                <span class="@(task.IsDone ? "text-decoration-line-through text-muted" : "")">@task.Title</span>
+                            </div>
+                            <button class="btn btn-outline-danger btn-sm" @onclick="() => RemoveTask(task)">Remove</button>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private string newTask = string.Empty;
+    private List<TodoItem> tasks = new();
+
+    private void AddTask()
+    {
+        if (!string.IsNullOrWhiteSpace(newTask))
+        { tasks.Add(new TodoItem { Title = newTask.Trim() }); newTask = string.Empty; }
+    }
+    private void RemoveTask(TodoItem task) => tasks.Remove(task);
+    private void ClearAll() => tasks.Clear();
+    private void HandleKeyPress(KeyboardEventArgs e) { if (e.Key == "Enter") AddTask(); }
+
+    public class TodoItem
+    {
+        public string Title { get; set; } = string.Empty;
+        public bool IsDone { get; set; } = false;
+    }
+}

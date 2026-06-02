@@ -1,0 +1,11 @@
+wwwroot\app.css
+wwwroot\bootstrap\bootstrap.min.css
+wwwroot\bootstrap\bootstrap.min.css.map
+wwwroot\favicon.png
+C:\Users\M . AYAN LAPTOPS\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.5\build\..\_framework\blazor.web.js
+C:\Users\M . AYAN LAPTOPS\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.5\build\..\_framework\blazor.server.js
+D:\Downloads\BlazorApps_Combined\combined\wwwroot\app.css
+D:\Downloads\BlazorApps_Combined\combined\wwwroot\bootstrap\bootstrap.min.css
+D:\Downloads\BlazorApps_Combined\combined\wwwroot\bootstrap\bootstrap.min.css.map
+C:\Users\M . AYAN LAPTOPS\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.5\_framework\blazor.web.js
+C:\Users\M . AYAN LAPTOPS\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.5\_framework\blazor.server.js

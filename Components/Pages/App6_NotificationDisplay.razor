@@ -1,0 +1,108 @@
+@page "/notifications"
+@rendermode InteractiveServer
+@inject NotificationService NotifService
+@inject NotificationConfig Config
+
+<PageTitle>App 6 - Notifications</PageTitle>
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">Application 6: Notification Display</h3>
+            <span class="badge bg-light text-dark">@Config.NotificationStyle View</span>
+        </div>
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between mb-3">
+                <span class="text-muted">Showing @Config.DefaultNumberOfNotifications notifications</span>
+                <button class="btn btn-secondary btn-sm" @onclick="LoadNotifications">🔄 Refresh</button>
+            </div>
+
+            @if (isLoading)
+            {
+                <div class="text-center py-4">
+                    <div class="spinner-border text-secondary"></div>
+                    <p class="mt-2">Loading notifications...</p>
+                </div>
+            }
+            else if (notifications is not null)
+            {
+                @if (Config.NotificationStyle == "Compact")
+                {
+                    <!-- COMPACT VIEW -->
+                    <ul class="list-group">
+                        @foreach (var n in notifications)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>
+                                    <span class="badge @GetBadgeClass(n.Type) me-2">@n.Type</span>
+                                    @n.Message
+                                </span>
+                                <small class="text-muted">@n.Time.ToString("HH:mm")</small>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <!-- DETAILED VIEW -->
+                    <div class="row">
+                        @foreach (var n in notifications)
+                        {
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-@GetBootstrapColor(n.Type)">
+                                    <div class="card-header bg-@GetBootstrapColor(n.Type) text-white d-flex justify-content-between">
+                                        <strong>#@n.Id – @n.Type</strong>
+                                        <small>@n.Time.ToString("HH:mm:ss")</small>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="card-text">@n.Message</p>
+                                        <button class="btn btn-sm btn-outline-secondary">Dismiss</button>
+                                        <button class="btn btn-sm btn-outline-primary ms-1">View Details</button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+
+            <hr />
+            <p class="text-muted small">
+                Go to <a href="/notification-settings">Settings</a> to change count and style.
+            </p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<NotificationService.NotificationItem>? notifications;
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+        => await LoadNotifications();
+
+    private async Task LoadNotifications()
+    {
+        isLoading = true;
+        await Task.Delay(300); // simulate async load
+        notifications = await NotifService.GetNotificationsAsync();
+        isLoading = false;
+    }
+
+    private string GetBadgeClass(string type) => type switch
+    {
+        "Error" => "bg-danger",
+        "Warning" => "bg-warning text-dark",
+        "Success" => "bg-success",
+        _ => "bg-info text-dark"
+    };
+
+    private string GetBootstrapColor(string type) => type switch
+    {
+        "Error" => "danger",
+        "Warning" => "warning",
+        "Success" => "success",
+        _ => "info"
+    };
+}

@@ -1,0 +1,72 @@
+@page "/theme"
+@rendermode InteractiveServer
+@inject IJSRuntime JS
+
+<PageTitle>App 7 - Theme Toggle</PageTitle>
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header @(isDark ? "bg-dark text-white" : "bg-light text-dark")">
+            <h3>Application 7: Light / Dark Mode Toggle</h3>
+        </div>
+        <div class="card-body">
+            <div class="text-center py-3">
+                <div class="display-1 mb-3">@(isDark ? "🌙" : "☀️")</div>
+                <h4>Current Theme: <strong>@(isDark ? "Dark Mode" : "Light Mode")</strong></h4>
+                <button class="btn btn-lg mt-3 @(isDark ? "btn-light" : "btn-dark")" @onclick="ToggleTheme">
+                    @(isDark ? "☀️ Switch to Light Mode" : "🌙 Switch to Dark Mode")
+                </button>
+            </div>
+            <hr />
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <div class="card @(isDark ? "bg-secondary text-white" : "bg-light")">
+                        <div class="card-body">
+                            <h5>Sample Card</h5>
+                            <p>This card changes style based on the selected theme.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card @(isDark ? "bg-dark text-white border-secondary" : "border-primary")">
+                        <div class="card-body">
+                            <h5>Another Card</h5>
+                            <p>Theme is saved to localStorage and persists on page refresh.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool isDark = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var savedTheme = await JS.InvokeAsync<string>("localStorage.getItem", "blazor-theme");
+                isDark = savedTheme == "dark";
+                await ApplyTheme();
+                StateHasChanged();
+            }
+            catch { }
+        }
+    }
+
+    private async Task ToggleTheme() { isDark = !isDark; await ApplyTheme(); }
+
+    private async Task ApplyTheme()
+    {
+        var theme = isDark ? "dark" : "light";
+        await JS.InvokeVoidAsync("localStorage.setItem", "blazor-theme", theme);
+        await JS.InvokeVoidAsync("eval",
+            $"document.body.className = '{theme}'; " +
+            $"document.body.style.backgroundColor = '{(isDark ? "#1a1a2e" : "#ffffff")}'; " +
+            $"document.body.style.color = '{(isDark ? "#e0e0e0" : "#212529")}';");
+    }
+}

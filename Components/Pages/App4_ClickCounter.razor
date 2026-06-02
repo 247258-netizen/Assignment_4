@@ -1,0 +1,50 @@
+@page "/counter-app"
+@rendermode InteractiveServer
+
+<PageTitle>App 4 - Click Counter</PageTitle>
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-info text-white">
+            <h3>Application 4: Click Counter with Event Handling</h3>
+        </div>
+        <div class="card-body text-center">
+            <div class="display-1 fw-bold text-info my-4">@count</div>
+            <p class="text-muted">Current Count</p>
+
+            <div class="d-flex justify-content-center gap-3 mb-4">
+                <button class="btn btn-info btn-lg px-5" @onclick="IncrementCount">+ Increment</button>
+                <button class="btn btn-outline-secondary btn-lg" @onclick="DecrementCount">- Decrement</button>
+                <button class="btn btn-outline-danger btn-lg" @onclick="ResetCount">Reset</button>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Set Count Manually (Two-Way Binding):</label>
+                    <input type="number" class="form-control form-control-lg text-center" @bind="count" />
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <span class="badge bg-secondary me-2">Total Clicks: @totalClicks</span>
+                <span class="badge bg-success me-2">Max: @maxCount</span>
+                <span class="badge bg-danger">Min: @minCount</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int count = 0;
+    private int totalClicks = 0;
+    private int maxCount = 0;
+    private int minCount = 0;
+
+    private void IncrementCount()
+    { count++; totalClicks++; if (count > maxCount) maxCount = count; }
+
+    private void DecrementCount()
+    { count--; if (count < minCount) minCount = count; }
+
+    private void ResetCount() => count = 0;
+}

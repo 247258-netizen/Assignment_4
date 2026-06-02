@@ -1,0 +1,30 @@
+@page "/greeting"
+@rendermode InteractiveServer
+
+<PageTitle>App 1 - Greeting</PageTitle>
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3>Application 1: Data Binding - Greeting Component</h3>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Enter Your Name (Two-Way Binding):</label>
+                <input class="form-control" @bind="userName" @bind:event="oninput" placeholder="Type your name here..." />
+            </div>
+            <div class="alert alert-success mt-3">
+                <strong>Greeting:</strong> @GreetingMessage
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string userName = string.Empty;
+
+    private string GreetingMessage =>
+        string.IsNullOrWhiteSpace(userName)
+            ? "Hello, Guest! Please enter your name above."
+            : $"Hello, {userName}! Welcome to Blazor Applications.";
+}

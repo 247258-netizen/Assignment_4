@@ -1,0 +1,77 @@
+@page "/register"
+@rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>App 2 - Form Validation</PageTitle>
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-success text-white">
+            <h3>Application 2: Form Validation with EditForm</h3>
+        </div>
+        <div class="card-body">
+            @if (isSubmitted)
+            {
+                <div class="alert alert-success">
+                    <h5>✅ Form Submitted Successfully!</h5>
+                    <p>Welcome, <strong>@model.FirstName @model.LastName</strong>!</p>
+                    <p>Confirmation sent to: <strong>@model.Email</strong></p>
+                    <button class="btn btn-outline-success" @onclick="Reset">Submit Another</button>
+                </div>
+            }
+            else
+            {
+                <EditForm Model="model" OnValidSubmit="HandleSubmit">
+                    <DataAnnotationsValidator />
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">First Name <span class="text-danger">*</span></label>
+                            <InputText @bind-Value="model.FirstName" class="form-control" placeholder="Enter first name" />
+                            <ValidationMessage For="() => model.FirstName" class="text-danger small" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Last Name <span class="text-danger">*</span></label>
+                            <InputText @bind-Value="model.LastName" class="form-control" placeholder="Enter last name" />
+                            <ValidationMessage For="() => model.LastName" class="text-danger small" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Email Address <span class="text-danger">*</span></label>
+                        <InputText @bind-Value="model.Email" class="form-control" placeholder="example@email.com" />
+                        <ValidationMessage For="() => model.Email" class="text-danger small" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Age</label>
+                        <InputNumber @bind-Value="model.Age" class="form-control" placeholder="Your age" />
+                        <ValidationMessage For="() => model.Age" class="text-danger small" />
+                    </div>
+                    <button type="submit" class="btn btn-success">Submit Form</button>
+                </EditForm>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private UserFormModel model = new();
+    private bool isSubmitted = false;
+
+    private void HandleSubmit() => isSubmitted = true;
+    private void Reset() { model = new(); isSubmitted = false; }
+
+    public class UserFormModel
+    {
+        [Required(ErrorMessage = "First name is required.")]
+        [StringLength(50)] public string FirstName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Last name is required.")]
+        [StringLength(50)] public string LastName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email address is required.")]
+        [EmailAddress(ErrorMessage = "Please enter a valid email address.")]
+        public string Email { get; set; } = string.Empty;
+
+        [Range(1, 120, ErrorMessage = "Age must be between 1 and 120.")]
+        public int Age { get; set; }
+    }
+}

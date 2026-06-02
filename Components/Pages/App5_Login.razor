@@ -1,0 +1,42 @@
+@page "/login"
+@rendermode InteractiveServer
+@inject AuthenticationStateService AuthService
+@implements IDisposable
+
+<PageTitle>App 5 - Login</PageTitle>
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-dark text-white">
+            <h3>Application 5: State Management – Login</h3>
+        </div>
+        <div class="card-body">
+            @if (AuthService.IsAuthenticated)
+            {
+                <div class="alert alert-success">
+                    <h5>✅ Logged in as: <strong>@AuthService.UserName</strong></h5>
+                </div>
+                <button class="btn btn-warning" @onclick="AuthService.LogOut">🔓 Log Out</button>
+            }
+            else
+            {
+                <div class="alert alert-secondary"><h5>🔒 You are not logged in</h5></div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Username</label>
+                    <input class="form-control" @bind="usernameInput" placeholder="Enter username" />
+                </div>
+                <button class="btn btn-dark" @onclick="Login">🔑 Log In</button>
+            }
+            <hr />
+            <p class="text-muted">Go to <a href="/profile">User Profile</a> to see shared state.</p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string usernameInput = string.Empty;
+    protected override void OnInitialized() => AuthService.OnChange += StateHasChanged;
+    private void Login()
+    { var name = string.IsNullOrWhiteSpace(usernameInput) ? "Student" : usernameInput; AuthService.LogIn(name); }
+    public void Dispose() => AuthService.OnChange -= StateHasChanged;
+}

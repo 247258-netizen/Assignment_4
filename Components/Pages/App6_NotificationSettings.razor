@@ -1,0 +1,50 @@
+@page "/notification-settings"
+@rendermode InteractiveServer
+@inject NotificationConfig Config
+
+<PageTitle>App 6 - Notification Settings</PageTitle>
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-secondary text-white">
+            <h3>Application 6: Notification Settings</h3>
+        </div>
+        <div class="card-body">
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Default Number of Notifications</label>
+                        <input type="number" class="form-control" @bind="Config.DefaultNumberOfNotifications"
+                               min="1" max="20" />
+                        <small class="text-muted">Between 1 and 20</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Notification Style</label>
+                        <select class="form-select" @bind="Config.NotificationStyle">
+                            <option value="Compact">Compact View</option>
+                            <option value="Detailed">Detailed View</option>
+                        </select>
+                    </div>
+
+                    <div class="alert alert-success">
+                        ✅ Settings are saved automatically (singleton service).
+                        <br />
+                        Go to <a href="/notifications">Notification Display</a> to see them applied.
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h5>Current Configuration:</h5>
+                            <p><strong>Count:</strong> @Config.DefaultNumberOfNotifications</p>
+                            <p><strong>Style:</strong> @Config.NotificationStyle</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

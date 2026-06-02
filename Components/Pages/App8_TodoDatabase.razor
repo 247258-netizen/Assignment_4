@@ -1,0 +1,226 @@
+@page "/todo-db"
+@rendermode InteractiveServer
+@inject TodoDbService DbService
+
+<PageTitle>App 8 - ToDo + Database</PageTitle>
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-danger text-white">
+            <h3>Application 8: ToDo List with Database (EF Core + SQLite)</h3>
+        </div>
+        <div class="card-body">
+
+            <!-- ADD NEW TASK -->
+            <div class="input-group mb-3">
+                <input class="form-control form-control-lg"
+                       @bind="newTaskTitle"
+                       @bind:event="oninput"
+                       @onkeypress="HandleKeyPress"
+                       placeholder="Enter a new task..." />
+                <button class="btn btn-danger" @onclick="AddTask" disabled="@isBusy">
+                    @(isBusy ? "Saving..." : "➕ Add to DB")
+                </button>
+            </div>
+
+            <!-- STATS ROW -->
+            <div class="d-flex gap-3 mb-3 flex-wrap">
+                <span class="badge bg-secondary fs-6">Total: @todos.Count</span>
+                <span class="badge bg-success fs-6">Done: @todos.Count(t => t.IsCompleted)</span>
+                <span class="badge bg-warning text-dark fs-6">Pending: @todos.Count(t => !t.IsCompleted)</span>
+                <button class="btn btn-outline-danger btn-sm ms-auto"
+                        @onclick="ClearAll"
+                        disabled="@(todos.Count == 0 || isBusy)">
+                    🗑️ Clear All from DB
+                </button>
+            </div>
+
+            @if (isLoading)
+            {
+                <div class="text-center py-4">
+                    <div class="spinner-border text-danger"></div>
+                    <p class="mt-2">Loading from database...</p>
+                </div>
+            }
+            else if (todos.Count == 0)
+            {
+                <div class="text-center text-muted py-4">
+                    <p>No tasks in the database. Add one!</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered">
+                        <thead class="table-dark">
+                            <tr>
+                                <th width="50">ID</th>
+                                <th>Task Title</th>
+                                <th width="120">Status</th>
+                                <th width="160">Created At</th>
+                                <th width="130">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in todos)
+                            {
+                                <tr class="@(item.IsCompleted ? "table-success" : "")">
+                                    <td class="text-muted">#@item.Id</td>
+                                    <td>
+                                        @if (editingId == item.Id)
+                                        {
+                                            <!-- EDIT MODE -->
+                                            <input class="form-control form-control-sm"
+                                                   @bind="editTitle" @bind:event="oninput" />
+                                        }
+                                        else
+                                        {
+                                            <span class="@(item.IsCompleted ? "text-decoration-line-through text-muted" : "")">
+                                                @item.Title
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <input type="checkbox"
+                                               class="form-check-input"
+                                               checked="@item.IsCompleted"
+                                               @onchange="() => ToggleComplete(item)" />
+                                        <span class="ms-1 small @(item.IsCompleted ? "text-success" : "text-warning")">
+                                            @(item.IsCompleted ? "Done" : "Pending")
+                                        </span>
+                                    </td>
+                                    <td class="text-muted small">@item.CreatedAt.ToString("dd/MM HH:mm")</td>
+                                    <td>
+                                        @if (editingId == item.Id)
+                                        {
+                                            <button class="btn btn-sm btn-success me-1"
+                                                    @onclick="() => SaveEdit(item)">💾</button>
+                                            <button class="btn btn-sm btn-secondary"
+                                                    @onclick="CancelEdit">✕</button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-sm btn-outline-primary me-1"
+                                                    @onclick="() => StartEdit(item)">✏️ Edit</button>
+                                            <button class="btn btn-sm btn-outline-danger"
+                                                    @onclick="() => DeleteItem(item)">🗑️</button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(statusMessage))
+            {
+                <div class="alert @(isError ? "alert-danger" : "alert-success") alert-dismissible mt-3">
+                    @statusMessage
+                    <button type="button" class="btn-close" @onclick="() => statusMessage = string.Empty"></button>
+                </div>
+            }
+                    <div class="col-md-6">
+                        <strong>CRUD Operations:</strong>
+                        <ul class="small">
+                            <li><strong>CREATE:</strong> Add task → inserts row in TodoItems table</li>
+                            <li><strong>READ:</strong> Page loads → SELECT * FROM TodoItems</li>
+                            <li><strong>UPDATE:</strong> Edit / toggle → UPDATE row in DB</li>
+                            <li><strong>DELETE:</strong> Delete / Clear All → DELETE FROM DB</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+ 
+
+
+@code {
+    private List<TodoDbItem> todos = new();
+    private string newTaskTitle = string.Empty;
+    private bool isLoading = false;
+    private bool isBusy = false;
+    private string statusMessage = string.Empty;
+    private bool isError = false;
+
+    // Edit state
+    private int editingId = -1;
+    private string editTitle = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        todos = await DbService.GetAllAsync();
+        isLoading = false;
+    }
+
+    private async Task AddTask()
+    {
+        if (string.IsNullOrWhiteSpace(newTaskTitle)) return;
+
+        isBusy = true;
+        try
+        {
+            var item = await DbService.AddAsync(newTaskTitle.Trim());
+            todos.Add(item);
+            newTaskTitle = string.Empty;
+            ShowStatus($"Task added to database (ID: #{item.Id})");
+        }
+        catch (Exception ex)
+        {
+            ShowStatus($"Error: {ex.Message}", isError: true);
+        }
+        isBusy = false;
+    }
+
+    private async Task ToggleComplete(TodoDbItem item)
+    {
+        item.IsCompleted = !item.IsCompleted;
+        await DbService.UpdateAsync(item);
+        ShowStatus($"Task #{item.Id} updated in database.");
+    }
+
+    private void StartEdit(TodoDbItem item)
+    {
+        editingId = item.Id;
+        editTitle = item.Title;
+    }
+
+    private async Task SaveEdit(TodoDbItem item)
+    {
+        if (!string.IsNullOrWhiteSpace(editTitle))
+        {
+            item.Title = editTitle.Trim();
+            await DbService.UpdateAsync(item);
+            ShowStatus($"Task #{item.Id} updated in database.");
+        }
+        editingId = -1;
+    }
+
+    private void CancelEdit() => editingId = -1;
+
+    private async Task DeleteItem(TodoDbItem item)
+    {
+        await DbService.DeleteAsync(item.Id);
+        todos.Remove(item);
+        ShowStatus($"Task #{item.Id} deleted from database.");
+    }
+
+    private async Task ClearAll()
+    {
+        await DbService.ClearAllAsync();
+        todos.Clear();
+        ShowStatus("All tasks cleared from database.");
+    }
+
+    private void HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") _ = AddTask();
+    }
+
+    private void ShowStatus(string msg, bool isError = false)
+    {
+        this.statusMessage = msg;
+        this.isError = isError;
+    }
+}

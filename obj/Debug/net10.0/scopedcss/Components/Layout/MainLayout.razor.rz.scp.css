@@ -1,0 +1,2 @@
+.page[b-vtrajlw13f] { position: relative; display: flex; flex-direction: column; }
+@media (min-width: 641px) { .page[b-vtrajlw13f] { flex-direction: row; } .sidebar[b-vtrajlw13f] { width: 250px; height: 100vh; position: sticky; top: 0; } }
